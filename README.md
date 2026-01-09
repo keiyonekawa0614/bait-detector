@@ -34,6 +34,13 @@ YouTubeのURLを入力するだけで、AIがサムネイルやタイトルか�
 # 依存関係をインストール
 pnpm install
 
+# ローカルでVertex AIを使うための認証
+gcloud auth application-default login
+
+# .env.local ファイルを作成
+echo "GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID" > .env.local
+echo "GOOGLE_CLOUD_LOCATION=asia-northeast1" >> .env.local
+
 # 開発サーバーを起動
 pnpm dev
 ```
