@@ -124,7 +124,7 @@ gcloud services enable youtube.googleapis.com
 gcloud services enable customsearch.googleapis.com
 
 # デプロイ
-gcloud run deploy youtube-clickbait-checker \
+gcloud run deploy YOUR_SERVICE_NAME \
   --source . \
   --region asia-northeast1 \
   --allow-unauthenticated \
