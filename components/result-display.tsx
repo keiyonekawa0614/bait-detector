@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { RadarChart } from "@/components/radar-chart"
 import { ScoreMeter } from "@/components/score-meter"
-import { RotateCcw, AlertTriangle, CheckCircle } from "lucide-react"
+import { RotateCcw, AlertTriangle, CheckCircle, Clock, Eye, ThumbsUp, Calendar } from "lucide-react"
 import type { AnalysisResult } from "@/lib/types"
 
 interface ResultDisplayProps {
@@ -12,8 +12,37 @@ interface ResultDisplayProps {
   onReset: () => void
 }
 
+function formatDuration(isoDuration: string): string {
+  const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+  if (!match) return isoDuration
+  const hours = match[1] ? Number.parseInt(match[1]) : 0
+  const minutes = match[2] ? Number.parseInt(match[2]) : 0
+  const seconds = match[3] ? Number.parseInt(match[3]) : 0
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+  }
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`
+}
+
+function formatCount(count: string): string {
+  const num = Number.parseInt(count.replace(/,/g, ""), 10)
+  if (Number.isNaN(num)) return count
+  if (num >= 100000000) {
+    return `${(num / 100000000).toFixed(1)}億`
+  }
+  if (num >= 10000) {
+    return `${(num / 10000).toFixed(1)}万`
+  }
+  return num.toLocaleString()
+}
+
+function formatDate(isoDate: string): string {
+  const date = new Date(isoDate)
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`
+}
+
 export function ResultDisplay({ result, onReset }: ResultDisplayProps) {
-  const { isClickbait, overallScore, scores, analysis, videoInfo, error } = result
+  const { isClickbait, overallScore, scores, analysis, videoInfo, videoDetails, error } = result
 
   const getVerdict = () => {
     if (error) return { text: "エラー", emoji: "❓", color: "text-muted-foreground" }
@@ -39,9 +68,36 @@ export function ResultDisplay({ result, onReset }: ResultDisplayProps) {
             )}
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-medium text-foreground line-clamp-2">{videoInfo.title}</h3>
-              {videoInfo.channelName && <p className="text-xs text-muted-foreground mt-1">{videoInfo.channelName}</p>}
+              {videoInfo.channelName && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {videoInfo.channelName}
+                  {videoDetails?.subscriberCount && (
+                    <span className="ml-1">({formatCount(videoDetails.subscriberCount)}人)</span>
+                  )}
+                </p>
+              )}
             </div>
           </div>
+          {videoDetails && (
+            <div className="mt-3 pt-3 border-t border-border grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{formatDate(videoDetails.publishedAt)}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock className="w-3.5 h-3.5" />
+                <span>{formatDuration(videoDetails.duration)}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Eye className="w-3.5 h-3.5" />
+                <span>{formatCount(videoDetails.viewCount)}回</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <ThumbsUp className="w-3.5 h-3.5" />
+                <span>{formatCount(videoDetails.likeCount)}</span>
+              </div>
+            </div>
+          )}
         </Card>
       )}
 

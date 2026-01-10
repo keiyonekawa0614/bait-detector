@@ -19,7 +19,7 @@ export function RadarChart({ scores }: RadarChartProps) {
 
     // High DPI support
     const dpr = window.devicePixelRatio || 1
-    const size = 280
+    const size = 340
     canvas.width = size * dpr
     canvas.height = size * dpr
     canvas.style.width = `${size}px`
@@ -69,8 +69,9 @@ export function RadarChart({ scores }: RadarChartProps) {
     // Draw axes
     labels.forEach((_, i) => {
       const angle = startAngle + i * angleStep
-      const x = centerX + Math.cos(angle) * maxRadius
-      const y = centerY + Math.sin(angle) * maxRadius
+      const radius = maxRadius // Declare radius variable here
+      const x = centerX + Math.cos(angle) * radius
+      const y = centerY + Math.sin(angle) * radius
 
       ctx.beginPath()
       ctx.moveTo(centerX, centerY)
@@ -126,14 +127,14 @@ export function RadarChart({ scores }: RadarChartProps) {
     })
 
     // Draw labels
-    ctx.font = "11px 'Geist', sans-serif"
-    ctx.fillStyle = "rgba(255, 255, 255, 0.7)"
+    ctx.font = "12px 'Geist', sans-serif"
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)"
     ctx.textAlign = "center"
     ctx.textBaseline = "middle"
 
     labels.forEach((item, i) => {
       const angle = startAngle + i * angleStep
-      const labelRadius = maxRadius + 25
+      const labelRadius = maxRadius + 45
       const x = centerX + Math.cos(angle) * labelRadius
       const y = centerY + Math.sin(angle) * labelRadius
 
