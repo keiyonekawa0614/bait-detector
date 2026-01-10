@@ -4,7 +4,19 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { RadarChart } from "@/components/radar-chart"
 import { ScoreMeter } from "@/components/score-meter"
-import { RotateCcw, AlertTriangle, CheckCircle, Clock, Eye, ThumbsUp, Calendar } from "lucide-react"
+import {
+  RotateCcw,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Eye,
+  ThumbsUp,
+  Calendar,
+  Search,
+  Shield,
+  ExternalLink,
+  Bot,
+} from "lucide-react"
 import type { AnalysisResult } from "@/lib/types"
 
 interface ResultDisplayProps {
@@ -42,7 +54,7 @@ function formatDate(isoDate: string): string {
 }
 
 export function ResultDisplay({ result, onReset }: ResultDisplayProps) {
-  const { isClickbait, overallScore, scores, analysis, videoInfo, videoDetails, error } = result
+  const { isClickbait, overallScore, scores, analysis, videoInfo, videoDetails, agentInvestigation, error } = result
 
   const getVerdict = () => {
     if (error) return { text: "エラー", emoji: "❓", color: "text-muted-foreground" }
@@ -110,6 +122,102 @@ export function ResultDisplay({ result, onReset }: ResultDisplayProps) {
 
       {/* Score Meter */}
       <ScoreMeter score={overallScore} />
+
+      {agentInvestigation && (
+        <Card className="p-4 bg-card border-border">
+          <div className="flex items-center gap-2 mb-4">
+            <Bot className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">AIエージェント調査</h3>
+          </div>
+
+          {/* ファクトチェック */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Search className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-medium text-foreground">ファクトチェック</span>
+            </div>
+            {agentInvestigation.factCheck.query === "確認不要" ? (
+              <p className="text-xs text-muted-foreground ml-5">事実確認が必要な主張なし</p>
+            ) : (
+              <div className="ml-5 space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  検索: <span className="text-foreground">{agentInvestigation.factCheck.query}</span>
+                </p>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-medium ${
+                      agentInvestigation.factCheck.credibleSources >= 2
+                        ? "text-safe"
+                        : agentInvestigation.factCheck.credibleSources >= 1
+                          ? "text-warning"
+                          : "text-danger"
+                    }`}
+                  >
+                    信頼できる情報源: {agentInvestigation.factCheck.credibleSources}件
+                  </span>
+                </div>
+                <p className="text-xs text-foreground bg-muted/50 p-2 rounded">
+                  {agentInvestigation.factCheck.verdict}
+                </p>
+                {agentInvestigation.factCheck.results.length > 0 && (
+                  <div className="space-y-1">
+                    {agentInvestigation.factCheck.results.slice(0, 2).map((r, i) => (
+                      <a
+                        key={i}
+                        href={r.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span className="line-clamp-1">{r.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* チャンネル評判 */}
+          <div className="pt-3 border-t border-border">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-medium text-foreground">チャンネル評判</span>
+            </div>
+            <div className="ml-5 space-y-2">
+              <p className="text-xs text-foreground bg-muted/50 p-2 rounded">
+                {agentInvestigation.channelReputation.verdict}
+              </p>
+              {agentInvestigation.channelReputation.warningSignals.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {agentInvestigation.channelReputation.warningSignals.map((signal, i) => (
+                    <span key={i} className="text-xs bg-danger/20 text-danger px-2 py-0.5 rounded-full">
+                      {signal}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {agentInvestigation.channelReputation.results.length > 0 && (
+                <div className="space-y-1">
+                  {agentInvestigation.channelReputation.results.slice(0, 2).map((r, i) => (
+                    <a
+                      key={i}
+                      href={r.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span className="line-clamp-1">{r.title}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Radar Chart */}
       <Card className="p-4 bg-card border-border">

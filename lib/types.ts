@@ -24,6 +24,27 @@ export interface VideoDetails {
   hasComments: boolean
 }
 
+export interface SearchResult {
+  title: string
+  snippet: string
+  link: string
+}
+
+export interface AgentInvestigation {
+  factCheck: {
+    query: string
+    results: SearchResult[]
+    verdict: string
+    credibleSources: number
+  }
+  channelReputation: {
+    query: string
+    results: SearchResult[]
+    verdict: string
+    warningSignals: string[]
+  }
+}
+
 export interface AnalysisResult {
   isClickbait: boolean
   overallScore: number
@@ -31,5 +52,6 @@ export interface AnalysisResult {
   analysis: string
   videoInfo: VideoInfo | null
   videoDetails?: VideoDetails
+  agentInvestigation?: AgentInvestigation
   error?: boolean
 }
