@@ -19,13 +19,6 @@ YouTubeのURLを入力するだけで、AIがサムネイルやタイトルか�
 - **ファクトチェック**: タイトルの主張をGoogle検索で自動検証
 - **チャンネル評判調査**: 「炎上」「釣り」などのキーワードでチャンネルの過去の評判を調査
 
-### 取得する動画情報
-- サムネイル、タイトル、チャンネル名
-- 説明欄、タグ、チャプター
-- 再生時間、投稿日時
-- 再生数、いいね数、登録者数
-- 上位コメント（10件）
-
 ## 技術スタック
 
 - **フレームワーク**: Next.js 16 (App Router)
@@ -33,6 +26,67 @@ YouTubeのURLを入力するだけで、AIがサムネイルやタイトルか�
 - **AI**: Vertex AI (Gemini 2.5 Flash)
 - **API**: YouTube Data API v3, Google Custom Search API
 - **インフラ**: Google Cloud Run
+
+## AIエージェント実行フロー
+
+```
+POST /api/analyze
+  │
+  ▼
+1. URL検証・videoId抽出
+  │
+  ▼
+2. YouTube API で動画情報取得
+  │  - タイトル、説明欄、タグ
+  │  - 再生数、いいね数、投稿日
+  │  - チャンネル名、登録者数
+  │  - 上位コメント10件
+  │
+  ▼
+3. AIエージェント調査開始
+  │
+  ├─ 3-1. ファクトチェッククエリ生成（Gemini）
+  │       タイトルから検証すべき主張を抽出
+  │
+  ├─ 3-2. チャンネル評判クエリ生成
+  │       「チャンネル名 + 炎上/釣り」等のクエリ作成
+  │
+  ├─ 3-3. 検索実行（並列）
+  │   ├─ ファクトチェック検索（Google Custom Search）
+  │   └─ チャンネル評判検索（Google Custom Search）
+  │
+  ├─ 3-4. ファクトチェック分析（Gemini）
+  │       検索結果から事実確認レポート生成
+  │
+  └─ 3-5. チャンネル評判分析（Gemini）
+          検索結果から信頼性レポート生成
+  │
+  ▼
+4. エージェント調査結果をコンテキスト化
+  │
+  ▼
+5. 最終分析実行（Gemini）
+  │  - 動画情報 + エージェント調査結果を統合
+  │  - 5つの観点でスコア算出
+  │  - 総合釣り度スコア算出
+  │  - 判定コメント生成
+  │
+  ▼
+6. レスポンス返却
+   - 動画詳細情報
+   - 釣り度スコア（総合 + 5項目）
+   - ファクトチェック結果
+   - チャンネル評判調査結果
+   - AI判定コメント
+```
+
+## 取得する動画情報
+
+- サムネイル、タイトル、チャンネル名
+- 説明欄、タグ、チャプター
+- 再生時間、投稿日時
+- 再生数、いいね数、登録者数
+- 上位コメント（10件）
 
 ## 環境変数
 
@@ -124,7 +178,7 @@ gcloud services enable youtube.googleapis.com
 gcloud services enable customsearch.googleapis.com
 
 # デプロイ
-gcloud run deploy YOUR_SERVICE_NAME \
+gcloud run deploy youtube-clickbait-checker \
   --source . \
   --region asia-northeast1 \
   --allow-unauthenticated \
